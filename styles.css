@@ -131,6 +131,106 @@ button:active {
   border: 1px solid var(--border);
 }
 
+/* ====================== SVG ELEMENT STYLES (CRITICAL) ====================== */
+
+.wall-outline {
+  fill: #0f172a;
+  stroke: #94a3b8;
+  stroke-width: 1.2;
+}
+
+.panel-full {
+  fill: #1e293b;
+  stroke: #64748b;
+  stroke-width: 1;
+}
+
+.panel-cut {
+  fill: #020617;
+  stroke: #f87171;
+  stroke-width: 2;
+}
+
+.opening-box {
+  fill: rgba(239, 68, 68, 0.25);
+  stroke: #ef4444;
+  stroke-width: 2;
+}
+
+.panel-seam {
+  stroke: #e2e8f0;
+  stroke-width: 1.6;
+}
+
+.rib-line {
+  stroke: #22c55e;
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+  opacity: 0.3;
+}
+
+.dimension-line {
+  stroke: #64748b;
+  stroke-width: 1;
+}
+
+.tick {
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.dimension-text,
+.total-text,
+.panel-label {
+  font-family: "Fira Code", monospace;
+}
+
+.dimension-text {
+  fill: #e2e8f0;
+  font-size: 11px;
+}
+
+.total-text {
+  font-size: 12px;
+}
+
+.panel-label {
+  fill: #cbd5e1;
+  font-size: 12px;
+}
+
+/* Report styles */
+#openingReport {
+  margin-top: 12px;
+}
+
+.opening-report-block {
+  border-top: 1px solid #334155;
+  padding-top: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.panel-cut-list ul,
+.warning-box ul {
+  margin: 6px 0 0 18px;
+  padding: 0;
+}
+
+.warning-box {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #7f1d1d;
+  background: rgba(127, 29, 29, 0.15);
+  border-radius: 6px;
+  color: #fecaca;
+}
+
+.good-status {
+  color: #86efac;
+}
+
+/* Responsive */
 @media (max-width: 640px) {
   .app { padding: 12px; }
   #wallSvg { height: 340px; }
