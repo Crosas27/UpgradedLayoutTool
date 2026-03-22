@@ -2,11 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<!-- Anti-zoom reinforcement -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Panel Layout Tool</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -26,36 +29,43 @@
     <div id="sidewallFields" class="card">
       <h3>Sidewall Settings</h3>
       <label>Wall Length (inches)</label>
-      <input id="wallLength" type="number" value="480" />
+      <input id="wallLength" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" value="480" />
+
       <label>Wall Height (inches)</label>
-      <input id="wallHeight" type="number" value="120" />
+      <input id="wallHeight" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" value="120" />
+
       <label>Panel Coverage (inches)</label>
-      <input id="panelCoverage" type="number" value="36" />
+      <input id="panelCoverage" type="number" inputmode="decimal" step="1" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" value="36" />
+
       <label>Rib Spacing (inches)</label>
-      <input id="ribSpacing" type="number" value="12" />
+      <input id="ribSpacing" type="number" inputmode="decimal" step="1" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" value="12" />
+
       <label>Start Offset (inches)</label>
-      <input id="startOffset" type="number" value="0" />
+      <input id="startOffset" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" value="0" />
     </div>
 
-    <!-- Gable Fields (hidden by default) -->
+    <!-- Gable Fields -->
     <div id="gableFields" class="card" style="display:none;">
       <h3>Gable End Settings</h3>
       <label>Wall Length (inches)</label>
-      <input id="gableWallLength" type="number" value="480" />
+      <input id="gableWallLength" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" value="480" />
+
       <label>Eave Height (inches)</label>
-      <input id="eaveHeight" type="number" value="120" />
+      <input id="eaveHeight" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" value="120" />
+
       <label>Peak Height (inches)</label>
-      <input id="peakHeight" type="number" value="180" />
+      <input id="peakHeight" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" value="180" />
+
       <label>Panel Coverage (inches)</label>
-      <input id="gablePanelCoverage" type="number" value="36" />
+      <input id="gablePanelCoverage" type="number" inputmode="decimal" step="1" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" value="36" />
     </div>
 
     <div class="card">
       <h3>Openings</h3>
       <div id="openingsList"></div>
       <div class="opening-form">
-        <input id="openingStart" type="number" placeholder="Start (in)" />
-        <input id="openingWidth" type="number" placeholder="Width (in)" />
+        <input id="openingStart" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="Start (in)" />
+        <input id="openingWidth" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="Width (in)" />
       </div>
       <button type="button" id="addOpeningBtn">Add Opening</button>
     </div>
