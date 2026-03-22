@@ -14,6 +14,7 @@ export function generateLayout(config) {
 
   return {
     wallLength,
+    wallHeight: Number(config.wallHeight) || 120,
     panelCoverage,
     ribSpacing,
     startOffset,
