@@ -1,9 +1,10 @@
 export function generateLayout(config) {
-  const wallLength   = Number(config.wallLength)   || 0
+  const wallLength    = Number(config.wallLength)    || 0
+  const wallHeight    = Number(config.wallHeight)    || 120
   const panelCoverage = Number(config.panelCoverage) || 36
-  const ribSpacing   = Number(config.ribSpacing)   || 12
-  const startOffset  = Number(config.startOffset)  || 0
-  const openings     = Array.isArray(config.openings) ? config.openings : []
+  const ribSpacing    = Number(config.ribSpacing)    || 12
+  const startOffset   = Number(config.startOffset)   || 0
+  const openings      = Array.isArray(config.openings) ? config.openings : []
 
   const panels = calculatePanels(wallLength, panelCoverage)
   const seams  = panels.map(p => p.start).concat(wallLength)
@@ -14,7 +15,7 @@ export function generateLayout(config) {
 
   return {
     wallLength,
-    wallHeight: Number(config.wallHeight) || 120,
+    wallHeight,                    // ← NEW: Added for sidewall mode
     panelCoverage,
     ribSpacing,
     startOffset,
@@ -23,11 +24,31 @@ export function generateLayout(config) {
     ribs,
     openings,
     openingAnalysis,
-    summary
+    summary,
+    mode: "sidewall"
   }
 }
 
-/* ---------------- PANELS ---------------- */
+/* ====================== GABLE MODE ====================== */
+export function generateGableLayout(config) {
+  const wallLength    = Number(config.wallLength)    || 0
+  const eaveHeight    = Number(config.eaveHeight)    || 120
+  const peakHeight    = Number(config.peakHeight)    || 180
+  const panelCoverage = Number(config.panelCoverage) || 36
+
+  const gableCuts = calculateGablePanels(wallLength, panelCoverage, eaveHeight, peakHeight)
+
+  return {
+    wallLength,
+    eaveHeight,
+    peakHeight,
+    panelCoverage,
+    gableCuts,
+    mode: "gable"
+  }
+}
+
+/* ---------------- SIDEWALL HELPERS ---------------- */
 function calculatePanels(length, coverage) {
   const panels = []
   let pos = 0
@@ -47,7 +68,6 @@ function calculatePanels(length, coverage) {
   return panels
 }
 
-/* ---------------- RIBS ---------------- */
 function calculateRibs(length, spacing, start) {
   const ribs = []
   let pos = start
@@ -58,7 +78,6 @@ function calculateRibs(length, spacing, start) {
   return ribs
 }
 
-/* ---------------- SUMMARY ---------------- */
 function generatePanelSummary(wallLength, coverage, panels) {
   const fullPanels = panels.filter(p => p.width === coverage).length
   const first = panels[0] || null
@@ -73,7 +92,6 @@ function generatePanelSummary(wallLength, coverage, panels) {
   }
 }
 
-/* ---------------- OPENINGS ---------------- */
 function analyzeOpenings(openings, seams, ribs) {
   const edgeTolerance = 0.5
   const results = []
@@ -138,4 +156,40 @@ function findNearestValue(target, values) {
     }
   })
   return nearest
+}
+
+/* ---------------- GABLE PANEL CALCULATIONS ---------------- */
+function calculateGablePanels(length, coverage, eaveHeight, peakHeight) {
+  const rise = peakHeight - eaveHeight
+  const half = length / 2
+  const cuts = []
+  let pos = 0
+  let i = 1
+
+  while (pos < length) {
+    const end = Math.min(pos + coverage, length)
+
+    const leftHeight  = heightAt(pos, half, eaveHeight, rise)
+    const rightHeight = heightAt(end, half, eaveHeight, rise)
+
+    cuts.push({
+      panel: i,
+      start: pos,
+      end,
+      leftHeight: Math.round(leftHeight * 1000) / 1000,
+      rightHeight: Math.round(rightHeight * 1000) / 1000
+    })
+
+    pos += coverage
+    i++
+  }
+  return cuts
+}
+
+function heightAt(x, half, eaveHeight, rise) {
+  if (x <= half) {
+    return eaveHeight + rise * (x / half)
+  } else {
+    return eaveHeight + rise * ((half * 2 - x) / half)
+  }
 }
