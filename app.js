@@ -1,4 +1,4 @@
-import { generateLayout } from "./js/core/layoutEngine.js"
+import { generateLayout, generateGableLayout } from "./js/core/layoutEngine.js"
 import { renderSvg } from "./js/renderer/svgRenderer.js"
 import { renderGable } from "./js/renderer/gableRenderer.js"
 import { renderOpeningReport } from "./js/renderer/openingReportRenderer.js"
@@ -17,11 +17,10 @@ function debounce(func, delay) {
 }
 
 function collectFormState() {
-  // (unchanged from previous version – sidewall + gable logic)
   if (currentMode === "sidewall") {
     return {
       wallLength: Number(document.getElementById("wallLength").value) || 480,
-      wallHeight: Number(document.getElementById("wallHeight").value) || 120,
+      wallHeight: Number(document.getElementById("wallHeight").value) || 120,   // ← NEW
       panelCoverage: Number(document.getElementById("panelCoverage").value) || 36,
       ribSpacing: Number(document.getElementById("ribSpacing").value) || 12,
       startOffset: Number(document.getElementById("startOffset").value) || 0,
@@ -43,6 +42,7 @@ function collectFormState() {
 function updateLayout() {
   const config = collectFormState();
   let model;
+
   if (currentMode === "sidewall") {
     model = generateLayout(config);
     renderSvg(model);
@@ -50,19 +50,101 @@ function updateLayout() {
     model = generateGableLayout(config);
     renderGable(model);
   }
+
   renderOpeningReport(model);
   renderSummary(model);
 }
 
-// ====================== MODE TOGGLE (unchanged) ======================
-function switchMode(mode) { /* unchanged from previous version */ }
+// ====================== MODE TOGGLE ======================
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById("sidewallBtn").classList.toggle("active", mode === "sidewall");
+  document.getElementById("gableBtn").classList.toggle("active", mode === "gable");
+  document.getElementById("sidewallFields").classList.toggle("hidden", mode !== "sidewall");
+  document.getElementById("gableFields").classList.toggle("hidden", mode !== "gable");
+  document.getElementById("previewTitle").textContent = 
+    mode === "sidewall" ? "Live Preview – Sidewall" : "Live Preview – Gable End";
+  updateLayout();
+}
 
-// ====================== OPENINGS & EXPORT (unchanged) ======================
-function renderOpeningsList() { /* unchanged */ }
-function addOpening() { /* unchanged */ }
-function exportSVG() { /* unchanged */ }
+// ====================== OPENINGS UI ======================
+function renderOpeningsList() {
+  const list = document.getElementById("openingsList");
+  if (!list) return;
+  list.innerHTML = "";
 
-// ====================== NEW: MOBILE KEYBOARD OPTIMIZATIONS ======================
+  openings.forEach((op, index) => {
+    const div = document.createElement("div");
+    div.className = "opening-item";
+    div.innerHTML = `
+      <span>${op.start}" → ${op.start + op.width}"</span>
+      <button class="delete-btn">X</button>
+    `;
+    div.querySelector(".delete-btn").onclick = () => {
+      openings.splice(index, 1);
+      renderOpeningsList();
+      updateLayout();
+    };
+    list.appendChild(div);
+  });
+}
+
+function addOpening() {
+  const start = Number(document.getElementById("openingStart").value);
+  const width = Number(document.getElementById("openingWidth").value);
+  if (start < 0 || width <= 0) return;
+
+  openings.push({ start, width });
+
+  document.getElementById("openingStart").value = "";
+  document.getElementById("openingWidth").value = "";
+
+  renderOpeningsList();
+  updateLayout();
+}
+
+// ====================== EXPORT (with embedded styles + reports) ======================
+function exportSVG() {
+  const svgEl = document.getElementById("wallSvg");
+  const diagramHTML = svgEl.innerHTML.trim();
+
+  const styleBlock = `
+    <defs>
+      <style>
+        .wall-outline {fill:#0f172a;stroke:#94a3b8;stroke-width:1.2}
+        .panel-full {fill:#1e293b;stroke:#64748b;stroke-width:1}
+        .panel-cut {fill:#020617;stroke:#f87171;stroke-width:2}
+        .opening-box {fill:rgba(239,68,68,0.25);stroke:#ef4444;stroke-width:2}
+        .panel-seam {stroke:#e2e8f0;stroke-width:1.6}
+        .rib-line {stroke:#22c55e;stroke-width:1;stroke-dasharray:2 6;opacity:0.3}
+        .dimension-line,.tick {stroke:#64748b;stroke-width:1}
+        .dimension-text,.total-text,.panel-label {font-family:"Fira Code",monospace;fill:#e2e8f0}
+        .wall-line,.roof-line,.panel-line {stroke:#94a3b8;stroke-width:2}
+      </style>
+    </defs>`;
+
+  const summaryText = document.getElementById("panelSummary").textContent.trim().replace(/\s+/g, " ");
+  const reportText = document.getElementById("openingReport").textContent.trim().replace(/\s+/g, " ");
+
+  const fullSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="720" viewBox="0 0 900 720">
+    ${styleBlock}
+    <g transform="translate(0,20)">${diagramHTML}</g>
+    <text x="30" y="460" font-family="Fira Code" font-size="14" fill="#e2e8f0">=== PANEL SUMMARY ===</text>
+    <text x="30" y="490" font-family="Fira Code" font-size="12" fill="#94a3b8">${summaryText}</text>
+    <text x="30" y="540" font-family="Fira Code" font-size="14" fill="#e2e8f0">=== OPENINGS REPORT ===</text>
+    <text x="30" y="570" font-family="Fira Code" font-size="12" fill="#94a3b8">${reportText.substring(0, 300)}...</text>
+  </svg>`;
+
+  const blob = new Blob([fullSVG], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `panel-layout-${currentMode}-${Date.now()}.svg`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ====================== INITIALIZATION (with mobile keyboard enhancements) ======================
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("layoutForm");
 
