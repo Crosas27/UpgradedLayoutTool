@@ -1,109 +1,45 @@
 :root {
-  --bg: #0a0f1c;
-  --surface: #111827;
-  --card: #1f2937;
-  --border: #374151;
+  --bg: #020617;
+  --surface: #0f172a;
+  --border: #334155;
   --text: #e2e8f0;
   --primary: #0ea5e9;
-  --accent: #22d3ee;
-  --danger: #f87171;
+  --danger: #ef4444;
 }
-
-* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
-  padding-bottom: 80px; /* space for floating button */
 }
 
 .app {
+  padding: 16px;
   max-width: 920px;
   margin: auto;
-  padding: 16px;
 }
 
-/* Header */
-.header {
+h1 { 
+  margin: 0 0 20px 0;
   text-align: center;
-  margin-bottom: 24px;
-}
-
-.header h1 {
-  font-size: 1.75rem;
-  margin: 0;
-  color: white;
-}
-
-.subtitle {
-  color: #64748b;
-  font-size: 0.95rem;
-  margin: 4px 0 0;
-}
-
-/* Mode Toggle */
-.mode-toggle {
-  display: flex;
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 4px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-.mode-btn {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  background: transparent;
   color: #94a3b8;
-  font-weight: 600;
-  border-radius: 10px;
-  transition: all 0.2s;
 }
 
-.mode-btn.active {
-  background: var(--primary);
-  color: white;
-  box-shadow: 0 2px 8px rgba(14,165,233,0.3);
+h3 {
+  margin: 0 0 12px 0;
 }
 
-/* Cards */
 .card,
-.preview-card,
 .report-card {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+  padding: 16px;
+  margin-bottom: 18px;
+  border-radius: 12px;
 }
 
-.preview-card {
-  padding: 0;
-  overflow: hidden;
-}
-
-.preview-header {
-  padding: 16px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border);
-}
-
-#wallSvg {
-  width: 100%;
-  height: 420px;
-  background: #0f172a;
-  display: block;
-}
-
-/* Inputs & Buttons */
 label {
   display: block;
   margin-bottom: 6px;
@@ -113,69 +49,237 @@ label {
 
 input {
   width: 100%;
-  padding: 14px;
-  margin-bottom: 16px;
+  padding: 12px;
+  margin-bottom: 14px;
   background: #1e2937;
   border: 1.5px solid var(--border);
   color: var(--text);
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 1rem;
+  box-sizing: border-box;
 }
 
 input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(14,165,233,0.2);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
 }
 
 button {
-  padding: 14px;
+  width: 100%;
+  padding: 12px;
   background: var(--primary);
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   color: white;
   font-weight: 600;
   font-size: 1rem;
 }
 
+button:active {
+  transform: scale(0.97);
+}
+
+#exportBtn {
+  width: auto;
+  padding: 8px 16px;
+  background: #475569;
+  font-size: 0.95rem;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .opening-form {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .opening-form input {
   flex: 1;
-  margin-bottom: 0;
 }
 
-/* Floating Button */
-.floating-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #000;
-  font-size: 1.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 20px rgba(34,211,238,0.4);
-  z-index: 100;
-}
-
-/* Reports */
-.panel-cut-list {
-  padding: 12px;
+.opening-item {
   background: #1e2937;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: "Fira Code", monospace;
+  font-size: 14px;
+}
+
+.delete-btn {
+  background: var(--danger);
+  width: auto;
+  min-width: 40px;
+  padding: 6px 10px;
+}
+
+#wallSvg {
+  width: 100%;
+  height: 380px;
+  background: #0a1428;
   border-radius: 10px;
-  margin-bottom: 10px;
-  font-family: 'Fira Code', monospace;
+  border: 1px solid var(--border);
+}
+
+/* ====================== SVG ELEMENT STYLES (CRITICAL) ====================== */
+
+.wall-outline {
+  fill: #0f172a;
+  stroke: #94a3b8;
+  stroke-width: 1.2;
+}
+
+.panel-full {
+  fill: #1e293b;
+  stroke: #64748b;
+  stroke-width: 1;
+}
+
+.panel-cut {
+  fill: #020617;
+  stroke: #f87171;
+  stroke-width: 2;
+}
+
+.opening-box {
+  fill: rgba(239, 68, 68, 0.25);
+  stroke: #ef4444;
+  stroke-width: 2;
+}
+
+.panel-seam {
+  stroke: #e2e8f0;
+  stroke-width: 1.6;
+}
+
+.rib-line {
+  stroke: #22c55e;
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+  opacity: 0.3;
+}
+
+.dimension-line {
+  stroke: #64748b;
+  stroke-width: 1;
+}
+
+.tick {
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.dimension-text,
+.total-text,
+.panel-label {
+  font-family: "Fira Code", monospace;
+}
+
+.dimension-text {
+  fill: #e2e8f0;
+  font-size: 11px;
+}
+
+.total-text {
+  font-size: 12px;
+}
+
+.panel-label {
+  fill: #cbd5e1;
+  font-size: 12px;
+}
+
+/* Report styles */
+#openingReport {
+  margin-top: 12px;
+}
+
+.opening-report-block {
+  border-top: 1px solid #334155;
+  padding-top: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.panel-cut-list ul,
+.warning-box ul {
+  margin: 6px 0 0 18px;
+  padding: 0;
+}
+
+.warning-box {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #7f1d1d;
+  background: rgba(127, 29, 29, 0.15);
+  border-radius: 6px;
+  color: #fecaca;
+}
+
+.good-status {
+  color: #86efac;
 }
 
 /* Responsive */
 @media (max-width: 640px) {
   .app { padding: 12px; }
-  #wallSvg { height: 380px; }
+  #wallSvg { height: 340px; }
 }
+
+/* Mode Toggle */
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.mode-btn {
+  padding: 10px 24px;
+  background: #334155;
+  border: none;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mode-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Gable SVG classes */
+.wall-line, .roof-line, .panel-line {
+  stroke: #94a3b8;
+  stroke-width: 2;
+}
+
+.grid-line {
+  stroke: #1e2937;
+  stroke-width: 1;
+}
+
+/* ====================== MOBILE KEYBOARD & ANTI-ZOOM ====================== */
+input[type="number"] {
+  font-size: 16px !important;           /* Prevents iOS/Android auto-zoom */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Ensure consistent touch targets */
+input {
+  min-height: 48px;                     /* Better touch target on phones */
+}
+
+/* Hidden class for conditional fields */
+.hidden { display: none !important; }
