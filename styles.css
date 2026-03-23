@@ -270,5 +270,16 @@ button:active {
   stroke-width: 1;
 }
 
+/* ====================== MOBILE KEYBOARD & ANTI-ZOOM ====================== */
+input[type="number"] {
+  font-size: 16px !important;           /* Prevents iOS/Android auto-zoom */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Ensure consistent touch targets */
+input {
+  min-height: 48px;                     /* Better touch target on phones */
+}
+
 /* Hidden class for conditional fields */
 .hidden { display: none !important; }
