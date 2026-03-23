@@ -2,20 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<!-- Anti-zoom reinforcement -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Panel Layout Tool</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
 <div class="app">
-  <h1>Panel Layout Tool</h1>
+
+  <!-- Header -->
+  <header class="header">
+    <h1>Panel Layout Tool</h1>
+    <p class="subtitle">Metal Building Panel Designer</p>
+  </header>
 
   <!-- Mode Toggle -->
   <div class="mode-toggle">
@@ -25,9 +29,10 @@
 
   <form id="layoutForm">
 
-    <!-- Sidewall Fields -->
+    <!-- Dynamic Settings Card -->
     <div id="sidewallFields" class="card">
       <h3>Sidewall Settings</h3>
+      <!-- inputs remain exactly as before -->
       <label>Wall Length (inches)</label>
       <input id="wallLength" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="480" />
 
@@ -44,7 +49,6 @@
       <input id="startOffset" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="0" />
     </div>
 
-    <!-- Gable Fields (now correctly hidden/shown via class) -->
     <div id="gableFields" class="card hidden">
       <h3>Gable End Settings</h3>
       <label>Wall Length (inches)</label>
@@ -60,6 +64,7 @@
       <input id="gablePanelCoverage" type="number" inputmode="decimal" step="1" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="36" />
     </div>
 
+    <!-- Openings Card -->
     <div class="card">
       <h3>Openings</h3>
       <div id="openingsList"></div>
@@ -67,11 +72,12 @@
         <input id="openingStart" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="Start (in)" />
         <input id="openingWidth" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="Width (in)" />
       </div>
-      <button type="button" id="addOpeningBtn">Add Opening</button>
     </div>
+
   </form>
 
-  <div class="card">
+  <!-- Preview -->
+  <div class="preview-card">
     <div class="preview-header">
       <h3 id="previewTitle">Live Preview – Sidewall</h3>
       <button id="exportBtn">Export SVG + Report</button>
@@ -79,8 +85,13 @@
     <svg id="wallSvg"></svg>
   </div>
 
+  <!-- Reports -->
   <div class="report-card" id="panelSummary"></div>
   <div class="report-card" id="openingReport"></div>
+
+  <!-- Floating Add Opening Button -->
+  <button id="floatingAddBtn" class="floating-btn">+ Add Opening</button>
+
 </div>
 
 <script type="module" src="app.js"></script>
