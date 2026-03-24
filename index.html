@@ -29,6 +29,7 @@
         <div class="status-pill" id="statusLength">384"</div>
         <div class="status-pill status-pill-warning" id="statusWarnings">0 Warnings</div>
       </div>
+
       <div class="status-row status-row-secondary">
         <div class="status-meta" id="statusCoverage">36" Coverage</div>
         <div class="status-meta" id="statusRib">12" Rib</div>
@@ -37,7 +38,7 @@
     </header>
 
     <main class="app-main">
-      <!-- Input Rail / Mobile Accordion Stack -->
+      <!-- Controls -->
       <section class="control-stack" aria-label="Layout controls">
         <!-- Mode Toggle -->
         <div class="mode-toggle card">
@@ -209,30 +210,8 @@
             </div>
           </section>
 
-          <!-- Specs / Rules summary card -->
-          <section class="card accordion-card is-open" id="rulesCard">
-            <button
-              type="button"
-              class="accordion-toggle"
-              data-target="rulesPanel"
-              aria-expanded="true"
-              aria-controls="rulesPanel"
-            >
-              <span class="accordion-title">Panel Specs</span>
-              <span class="accordion-summary" id="rulesSummary">
-                PBR • 36" / 12"
-              </span>
-              <span class="accordion-chevron">▾</span>
-            </button>
-
-            <div id="rulesPanel" class="accordion-panel">
-              <div class="inline-note">
-                Current layout uses your live wall inputs, panel coverage, rib spacing, and start
-                offset. This card is here to keep the mobile structure sane instead of stuffing
-                everything into one endless box.
-              </div>
-            </div>
-          </section>
+          <!-- Hidden compatibility hook for app.js -->
+          <span id="rulesSummary" class="hidden" aria-hidden="true">PBR • 36" / 12"</span>
 
           <!-- Openings -->
           <section class="card accordion-card is-open" id="openingsCard">
@@ -360,23 +339,46 @@
           </div>
 
           <div class="results-panels">
-            <div class="results-panel active" id="summaryPanel" role="tabpanel" aria-labelledby="summaryTab">
+            <div
+              class="results-panel active"
+              id="summaryPanel"
+              role="tabpanel"
+              aria-labelledby="summaryTab"
+            >
               <div class="report-card report-card-inline" id="panelSummary"></div>
             </div>
 
-            <div class="results-panel" id="warningsPanel" role="tabpanel" aria-labelledby="warningsTab" hidden>
+            <div
+              class="results-panel"
+              id="warningsPanel"
+              role="tabpanel"
+              aria-labelledby="warningsTab"
+              hidden
+            >
               <div class="report-card report-card-inline" id="warningsReport">
                 <div class="empty-state">Warnings will appear here once validation is wired in.</div>
               </div>
             </div>
 
-            <div class="results-panel" id="cutsPanel" role="tabpanel" aria-labelledby="cutsTab" hidden>
+            <div
+              class="results-panel"
+              id="cutsPanel"
+              role="tabpanel"
+              aria-labelledby="cutsTab"
+              hidden
+            >
               <div class="report-card report-card-inline" id="cutsReport">
                 <div class="empty-state">Cut details will appear here.</div>
               </div>
             </div>
 
-            <div class="results-panel" id="reportPanel" role="tabpanel" aria-labelledby="reportTab" hidden>
+            <div
+              class="results-panel"
+              id="reportPanel"
+              role="tabpanel"
+              aria-labelledby="reportTab"
+              hidden
+            >
               <div class="report-card report-card-inline" id="openingReport"></div>
             </div>
           </div>
@@ -389,9 +391,16 @@
       <button type="button" id="generateBtn" class="footer-btn footer-btn-primary">
         Generate
       </button>
-      <button type="button" id="moreBtn" class="footer-btn footer-btn-icon" aria-label="More actions">
+
+      <button
+        type="button"
+        id="moreBtn"
+        class="footer-btn footer-btn-icon"
+        aria-label="More actions"
+      >
         •••
       </button>
+
       <button type="button" id="footerAddOpeningBtn" class="footer-btn footer-btn-accent">
         Add Opening
       </button>
