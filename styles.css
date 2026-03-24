@@ -321,10 +321,9 @@ input:focus {
   margin-bottom: 12px;
 }
 
-.opening-form {
+.opening-entry-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 6px;
   margin-bottom: 12px;
 }
 
@@ -335,11 +334,17 @@ input:focus {
   border-radius: 12px;
   display: flex;
   gap: 10px;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   font-family: "Fira Code", monospace;
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   color: var(--text-soft);
+}
+
+.opening-item span {
+  display: block;
+  line-height: 1.45;
+  word-break: break-word;
 }
 
 .delete-btn {
@@ -351,6 +356,7 @@ input:focus {
   background: rgba(239, 68, 68, 0.16);
   color: #fecaca;
   font-weight: 800;
+  flex-shrink: 0;
 }
 
 .secondary-action {
@@ -917,6 +923,17 @@ input:focus {
   .report-metric-grid {
     grid-template-columns: 1fr 1fr;
   }
+
+  .opening-entry-grid {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+    row-gap: 6px;
+  }
+
+  .opening-entry-grid label[for="openingLabel"],
+  .opening-entry-grid input#openingLabel {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (min-width: 1040px) {
@@ -950,10 +967,6 @@ input:focus {
     white-space: normal;
     margin-top: -2px;
     text-align: left;
-  }
-
-  .opening-form {
-    grid-template-columns: 1fr;
   }
 
   .results-tab {
