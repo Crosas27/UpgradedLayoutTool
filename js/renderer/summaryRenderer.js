@@ -1,3 +1,5 @@
+// summaryRenderer.js
+
 import { formatToField } from "../utils/formatter.js";
 
 export function renderSummary(model) {
@@ -14,12 +16,14 @@ export function renderSummary(model) {
 
 function renderSidewallSummary(el, model) {
   const s = model.summary || {};
+  const openingsCount = Array.isArray(model.openings) ? model.openings.length : 0;
+  const wallHeight = Number(model.wallHeight) || 0;
+
   const startPanel = s.startPanel;
   const endPanel = s.endPanel;
-  const isBalanced =
-    startPanel !== null &&
-    endPanel !== null &&
-    Number(startPanel) === Number(endPanel);
+
+  const hasBothCuts = startPanel !== null && endPanel !== null;
+  const isBalanced = hasBothCuts && Number(startPanel) === Number(endPanel);
 
   el.innerHTML = `
     <div class="summary-block">
@@ -29,6 +33,11 @@ function renderSidewallSummary(el, model) {
         <div class="summary-stat">
           <span class="summary-label">Wall Length</span>
           <strong class="summary-value">${formatToField(s.wallLength ?? 0)}</strong>
+        </div>
+
+        <div class="summary-stat">
+          <span class="summary-label">Wall Height</span>
+          <strong class="summary-value">${formatToField(wallHeight)}</strong>
         </div>
 
         <div class="summary-stat">
@@ -43,56 +52,74 @@ function renderSidewallSummary(el, model) {
 
         <div class="summary-stat">
           <span class="summary-label">Openings</span>
-          <strong class="summary-value">${Array.isArray(model.openings) ? model.openings.length : 0}</strong>
+          <strong class="summary-value">${openingsCount}</strong>
         </div>
-      </div>
 
-      <div class="summary-detail-list">
-        ${
-          startPanel !== null
-            ? `
-              <div class="summary-detail-row">
-                <span>Start Panel Cut</span>
-                <strong>${formatToField(startPanel)}</strong>
-              </div>
-            `
-            : `
-              <div class="summary-detail-row">
-                <span>Start Panel Cut</span>
-                <strong>None</strong>
-              </div>
-            `
-        }
-
-        ${
-          endPanel !== null
-            ? `
-              <div class="summary-detail-row">
-                <span>End Panel Cut</span>
-                <strong>${formatToField(endPanel)}</strong>
-              </div>
-            `
-            : `
-              <div class="summary-detail-row">
-                <span>End Panel Cut</span>
-                <strong>None</strong>
-              </div>
-            `
-        }
-
-        <div class="summary-detail-row">
-          <span>Layout Balance</span>
-          <strong class="${isBalanced ? "good-status" : ""}">
+        <div class="summary-stat">
+          <span class="summary-label">Layout Status</span>
+          <strong class="summary-value ${
+            hasBothCuts ? (isBalanced ? "good-status" : "") : "good-status"
+          }">
             ${
-              startPanel !== null && endPanel !== null
+              hasBothCuts
                 ? isBalanced
                   ? "Matched"
                   : "Unmatched"
-                : "Full-span layout"
+                : "Full-span"
             }
           </strong>
         </div>
       </div>
+
+      <div class="summary-detail-list">
+        <div class="summary-detail-row">
+          <span>Start Panel Cut</span>
+          <strong>${startPanel !== null ? formatToField(startPanel) : "None"}</strong>
+        </div>
+
+        <div class="summary-detail-row">
+          <span>End Panel Cut</span>
+          <strong>${endPanel !== null ? formatToField(endPanel) : "None"}</strong>
+        </div>
+
+        <div class="summary-detail-row">
+          <span>Openings with Geometry</span>
+          <strong>${openingsCount > 0 ? `${openingsCount} tracked` : "None"}</strong>
+        </div>
+
+        <div class="summary-detail-row">
+          <span>Wall Mode</span>
+          <strong>Sidewall</strong>
+        </div>
+      </div>
+
+      ${
+        openingsCount > 0
+          ? `
+            <div class="summary-cut-stack">
+              ${model.openings
+                .map(
+                  (opening, index) => `
+                    <div class="summary-cut-item">
+                      <div class="summary-cut-head">
+                        <strong>${opening.label?.trim() || `Opening ${index + 1}`}</strong>
+                      </div>
+                      <div class="summary-cut-values">
+                        <span>X ${formatToField(opening.start)} → ${formatToField(
+                          (Number(opening.start) || 0) + (Number(opening.width) || 0)
+                        )}</span>
+                        <span>Y ${formatToField(opening.bottom)} → ${formatToField(
+                          (Number(opening.bottom) || 0) + (Number(opening.height) || 0)
+                        )}</span>
+                      </div>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+          `
+          : ""
+      }
     </div>
   `;
 }
@@ -100,13 +127,20 @@ function renderSidewallSummary(el, model) {
 function renderGableSummary(el, model) {
   const cuts = model.gableCuts || [];
   const wallLength = model.wallLength ?? 0;
-  const eaveHeight = model.eaveHeight ?? 0;
+  const leftEaveHeight = model.leftEaveHeight ?? 0;
+  const rightEaveHeight = model.rightEaveHeight ?? 0;
   const peakHeight = model.peakHeight ?? 0;
+  const ridgePosition = model.ridgePosition ?? 0;
   const panelCoverage = model.panelCoverage ?? 0;
+
+  const first = cuts[0] || null;
+  const last = cuts[cuts.length - 1] || null;
+  const ridgeCentered =
+    Math.abs(Number(ridgePosition) - Number(wallLength) / 2) < 0.001;
 
   el.innerHTML = `
     <div class="summary-block">
-      <h3>Gable Panel Cuts</h3>
+      <h3>Gable Summary</h3>
 
       <div class="summary-grid">
         <div class="summary-stat">
@@ -115,13 +149,23 @@ function renderGableSummary(el, model) {
         </div>
 
         <div class="summary-stat">
-          <span class="summary-label">Eave Height</span>
-          <strong class="summary-value">${formatToField(eaveHeight)}</strong>
+          <span class="summary-label">Left Eave</span>
+          <strong class="summary-value">${formatToField(leftEaveHeight)}</strong>
+        </div>
+
+        <div class="summary-stat">
+          <span class="summary-label">Right Eave</span>
+          <strong class="summary-value">${formatToField(rightEaveHeight)}</strong>
         </div>
 
         <div class="summary-stat">
           <span class="summary-label">Peak Height</span>
           <strong class="summary-value">${formatToField(peakHeight)}</strong>
+        </div>
+
+        <div class="summary-stat">
+          <span class="summary-label">Ridge Position</span>
+          <strong class="summary-value">${formatToField(ridgePosition)}</strong>
         </div>
 
         <div class="summary-stat">
@@ -135,25 +179,58 @@ function renderGableSummary(el, model) {
           <span>Total Panels</span>
           <strong>${cuts.length}</strong>
         </div>
+
+        <div class="summary-detail-row">
+          <span>Ridge Layout</span>
+          <strong class="${ridgeCentered ? "good-status" : ""}">
+            ${ridgeCentered ? "Centered" : "Offset"}
+          </strong>
+        </div>
+
+        <div class="summary-detail-row">
+          <span>Gable Type</span>
+          <strong>
+            ${
+              Number(leftEaveHeight) === Number(rightEaveHeight)
+                ? "Symmetrical Eaves"
+                : "Asymmetrical Eaves"
+            }
+          </strong>
+        </div>
+
+        <div class="summary-detail-row">
+          <span>Wall Mode</span>
+          <strong>Gable End</strong>
+        </div>
       </div>
 
-      <div class="summary-cut-stack">
-        ${cuts
-          .map(
-            (cut) => `
+      ${
+        first && last
+          ? `
+            <div class="summary-cut-stack">
               <div class="summary-cut-item">
                 <div class="summary-cut-head">
-                  <strong>Panel ${cut.panel}</strong>
+                  <strong>First Panel</strong>
                 </div>
                 <div class="summary-cut-values">
-                  <span>Left ${formatToField(cut.leftHeight)}</span>
-                  <span>Right ${formatToField(cut.rightHeight)}</span>
+                  <span>Left ${formatToField(first.leftHeight)}</span>
+                  <span>Right ${formatToField(first.rightHeight)}</span>
                 </div>
               </div>
-            `
-          )
-          .join("")}
-      </div>
+
+              <div class="summary-cut-item">
+                <div class="summary-cut-head">
+                  <strong>Last Panel</strong>
+                </div>
+                <div class="summary-cut-values">
+                  <span>Left ${formatToField(last.leftHeight)}</span>
+                  <span>Right ${formatToField(last.rightHeight)}</span>
+                </div>
+              </div>
+            </div>
+          `
+          : ""
+      }
     </div>
   `;
 }
