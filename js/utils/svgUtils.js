@@ -1,60 +1,67 @@
-const NS = "http://www.w3.org/2000/svg"
+/// svgUtils.js ///
+
+const NS = "http://www.w3.org/2000/svg";
+
+function createSvgEl(tagName, className) {
+    const el = document.createElementNS(NS, tagName);
+    if (className) el.setAttribute("class", className);
+    return el;
+}
 
 export function setupSvg(svg, width, height) {
-  svg.innerHTML = ""
-  svg.setAttribute("viewBox", `0 0 ${width} ${height}`)
-  svg.setAttribute("width", "100%")
-  svg.setAttribute("height", height)
+    svg.innerHTML = "";
+    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", String(height));
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 }
 
 export function drawRect(svg, x, y, w, h, className) {
-  const rect = document.createElementNS(NS, "rect")
-  rect.setAttribute("x", x)
-  rect.setAttribute("y", y)
-  rect.setAttribute("width", w)
-  rect.setAttribute("height", h)
-  if (className) rect.setAttribute("class", className)
-  svg.appendChild(rect)
+    const rect = createSvgEl("rect", className);
+    rect.setAttribute("x", x);
+    rect.setAttribute("y", y);
+    rect.setAttribute("width", w);
+    rect.setAttribute("height", h);
+    svg.appendChild(rect);
+    return rect;
 }
 
 export function drawLine(svg, x1, y1, x2, y2, className) {
-  const line = document.createElementNS(NS, "line")
-  line.setAttribute("x1", x1)
-  line.setAttribute("y1", y1)
-  line.setAttribute("x2", x2)
-  line.setAttribute("y2", y2)
-  if (className) line.setAttribute("class", className)
-  svg.appendChild(line)
+    const line = createSvgEl("line", className);
+    line.setAttribute("x1", x1);
+    line.setAttribute("y1", y1);
+    line.setAttribute("x2", x2);
+    line.setAttribute("y2", y2);
+    svg.appendChild(line);
+    return line;
 }
 
 export function drawText(svg, x, y, text, className, anchor = "middle") {
-  const t = document.createElementNS(NS, "text")
-  t.setAttribute("x", x)
-  t.setAttribute("y", y)
-  t.setAttribute("text-anchor", anchor)
-  if (className) t.setAttribute("class", className)
-  t.textContent = text
-  svg.appendChild(t)
+    const t = createSvgEl("text", className);
+    t.setAttribute("x", x);
+    t.setAttribute("y", y);
+    t.setAttribute("text-anchor", anchor);
+    t.setAttribute("dominant-baseline", "middle");
+    t.textContent = text;
+    svg.appendChild(t);
+    return t;
 }
 
-/* Added for gable renderer support */
 export function getDrawArea(width, height) {
-  const margin = 40
-  return {
-    margin,
-    drawWidth: width - margin * 2,
-    drawHeight: height - margin * 2
-  }
+    const margin = Math.max(20, Math.min(40, width * 0.05));
+    return {
+        margin,
+        drawWidth: width - margin * 2,
+        drawHeight: height - margin * 2,
+    };
 }
 
-export function drawGrid(svg, width, height) {
-  const gridColor = "#1e2937"
-  // Light vertical grid
-  for (let x = 0; x < width; x += 40) {
-    drawLine(svg, x, 0, x, height, "grid-line")
-  }
-  // Light horizontal grid
-  for (let y = 0; y < height; y += 40) {
-    drawLine(svg, 0, y, width, y, "grid-line")
-  }
+export function drawGrid(svg, width, height, step = 40) {
+    for (let x = 0; x <= width; x += step) {
+        drawLine(svg, x, 0, x, height, "grid-line");
+    }
+
+    for (let y = 0; y <= height; y += step) {
+        drawLine(svg, 0, y, width, y, "grid-line");
+    }
 }
