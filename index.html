@@ -1,88 +1,403 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<!-- Anti-zoom reinforcement -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Panel Layout Tool</title>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+  <title>CR27 Panel Layout Tool</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
 
-<link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-<div class="app">
-  <h1>Panel Layout Tool</h1>
-
-  <!-- Mode Toggle -->
-  <div class="mode-toggle">
-    <button id="sidewallBtn" class="mode-btn active">Sidewall</button>
-    <button id="gableBtn" class="mode-btn">Gable End</button>
-  </div>
-
-  <form id="layoutForm">
-
-    <!-- Sidewall Fields -->
-    <div id="sidewallFields" class="card">
-      <h3>Sidewall Settings</h3>
-      <label>Wall Length (inches)</label>
-      <input id="wallLength" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="480" />
-
-      <label>Wall Height (inches)</label>
-      <input id="wallHeight" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="120" />
-
-      <label>Panel Coverage (inches)</label>
-      <input id="panelCoverage" type="number" inputmode="decimal" step="1" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="36" />
-
-      <label>Rib Spacing (inches)</label>
-      <input id="ribSpacing" type="number" inputmode="decimal" step="1" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="12" />
-
-      <label>Start Offset (inches)</label>
-      <input id="startOffset" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="0" />
-    </div>
-
-    <!-- Gable Fields (now correctly hidden/shown via class) -->
-    <div id="gableFields" class="card hidden">
-      <h3>Gable End Settings</h3>
-      <label>Wall Length (inches)</label>
-      <input id="gableWallLength" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="480" />
-
-      <label>Eave Height (inches)</label>
-      <input id="eaveHeight" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="120" />
-
-      <label>Peak Height (inches)</label>
-      <input id="peakHeight" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="180" />
-
-      <label>Panel Coverage (inches)</label>
-      <input id="gablePanelCoverage" type="number" inputmode="decimal" step="1" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="36" />
-    </div>
-
-    <div class="card">
-      <h3>Openings</h3>
-      <div id="openingsList"></div>
-      <div class="opening-form">
-        <input id="openingStart" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="next" placeholder="Start (in)" />
-        <input id="openingWidth" type="number" inputmode="decimal" step="0.125" min="0" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="Width (in)" />
+  <div class="app-shell">
+    <!-- Top Status Bar -->
+    <header class="status-bar" id="statusBar" aria-label="Layout status">
+      <div class="status-row status-row-primary">
+        <div class="status-brand">CR27</div>
+        <div class="status-pill" id="statusMode">Sidewall</div>
+        <div class="status-pill" id="statusLength">384"</div>
+        <div class="status-pill status-pill-warning" id="statusWarnings">0 Warnings</div>
       </div>
-      <button type="button" id="addOpeningBtn">Add Opening</button>
-    </div>
-  </form>
+      <div class="status-row status-row-secondary">
+        <div class="status-meta" id="statusCoverage">36" Coverage</div>
+        <div class="status-meta" id="statusRib">12" Rib</div>
+        <div class="status-meta" id="statusOpenings">0 Openings</div>
+      </div>
+    </header>
 
-  <div class="card">
-    <div class="preview-header">
-      <h3 id="previewTitle">Live Preview – Sidewall</h3>
-      <button id="exportBtn">Export SVG + Report</button>
-    </div>
-    <svg id="wallSvg"></svg>
+    <main class="app-main">
+      <!-- Input Rail / Mobile Accordion Stack -->
+      <section class="control-stack" aria-label="Layout controls">
+        <!-- Mode Toggle -->
+        <div class="mode-toggle card">
+          <button id="sidewallBtn" class="mode-btn active" type="button" aria-pressed="true">
+            Sidewall
+          </button>
+          <button id="gableBtn" class="mode-btn" type="button" aria-pressed="false">
+            Gable End
+          </button>
+        </div>
+
+        <form id="layoutForm" class="layout-form">
+          <!-- Sidewall -->
+          <section class="card accordion-card is-open" id="sidewallCard">
+            <button
+              type="button"
+              class="accordion-toggle"
+              data-target="sidewallFields"
+              aria-expanded="true"
+              aria-controls="sidewallFields"
+            >
+              <span class="accordion-title">Wall Setup</span>
+              <span class="accordion-summary" id="sidewallSummary">
+                Sidewall • 32' 0"
+              </span>
+              <span class="accordion-chevron">▾</span>
+            </button>
+
+            <div id="sidewallFields" class="accordion-panel">
+              <div class="field-grid">
+                <label for="wallLength">Wall Length (inches)</label>
+                <input
+                  id="wallLength"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="480"
+                />
+
+                <label for="wallHeight">Wall Height (inches)</label>
+                <input
+                  id="wallHeight"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="120"
+                />
+
+                <label for="panelCoverage">Panel Coverage (inches)</label>
+                <input
+                  id="panelCoverage"
+                  type="number"
+                  inputmode="decimal"
+                  step="1"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="36"
+                />
+
+                <label for="ribSpacing">Rib Spacing (inches)</label>
+                <input
+                  id="ribSpacing"
+                  type="number"
+                  inputmode="decimal"
+                  step="1"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="12"
+                />
+
+                <label for="startOffset">Start Offset (inches)</label>
+                <input
+                  id="startOffset"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="done"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+          </section>
+
+          <!-- Gable -->
+          <section class="card accordion-card hidden" id="gableCard">
+            <button
+              type="button"
+              class="accordion-toggle"
+              data-target="gableFields"
+              aria-expanded="false"
+              aria-controls="gableFields"
+            >
+              <span class="accordion-title">Gable Geometry</span>
+              <span class="accordion-summary" id="gableSummary">
+                Gable • 40' 0"
+              </span>
+              <span class="accordion-chevron">▾</span>
+            </button>
+
+            <div id="gableFields" class="accordion-panel hidden">
+              <div class="field-grid">
+                <label for="gableWallLength">Wall Length (inches)</label>
+                <input
+                  id="gableWallLength"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="480"
+                />
+
+                <label for="eaveHeight">Eave Height (inches)</label>
+                <input
+                  id="eaveHeight"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="120"
+                />
+
+                <label for="peakHeight">Peak Height (inches)</label>
+                <input
+                  id="peakHeight"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="180"
+                />
+
+                <label for="gablePanelCoverage">Panel Coverage (inches)</label>
+                <input
+                  id="gablePanelCoverage"
+                  type="number"
+                  inputmode="decimal"
+                  step="1"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="done"
+                  placeholder="36"
+                />
+              </div>
+            </div>
+          </section>
+
+          <!-- Specs / Rules summary card -->
+          <section class="card accordion-card is-open" id="rulesCard">
+            <button
+              type="button"
+              class="accordion-toggle"
+              data-target="rulesPanel"
+              aria-expanded="true"
+              aria-controls="rulesPanel"
+            >
+              <span class="accordion-title">Panel Specs</span>
+              <span class="accordion-summary" id="rulesSummary">
+                PBR • 36" / 12"
+              </span>
+              <span class="accordion-chevron">▾</span>
+            </button>
+
+            <div id="rulesPanel" class="accordion-panel">
+              <div class="inline-note">
+                Current layout uses your live wall inputs, panel coverage, rib spacing, and start
+                offset. This card is here to keep the mobile structure sane instead of stuffing
+                everything into one endless box.
+              </div>
+            </div>
+          </section>
+
+          <!-- Openings -->
+          <section class="card accordion-card is-open" id="openingsCard">
+            <button
+              type="button"
+              class="accordion-toggle"
+              data-target="openingsPanel"
+              aria-expanded="true"
+              aria-controls="openingsPanel"
+            >
+              <span class="accordion-title">Openings</span>
+              <span class="accordion-summary" id="openingsSummary">
+                0 Added
+              </span>
+              <span class="accordion-chevron">▾</span>
+            </button>
+
+            <div id="openingsPanel" class="accordion-panel">
+              <div id="openingsList" class="openings-list"></div>
+
+              <div class="opening-form">
+                <input
+                  id="openingStart"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="Start (in)"
+                />
+                <input
+                  id="openingWidth"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="done"
+                  placeholder="Width (in)"
+                />
+              </div>
+
+              <button type="button" id="addOpeningBtn" class="secondary-action">
+                Add Opening
+              </button>
+            </div>
+          </section>
+        </form>
+      </section>
+
+      <!-- Preview / Results -->
+      <section class="preview-stack" aria-label="Preview and reports">
+        <section class="card preview-card">
+          <div class="preview-header">
+            <div class="preview-header-copy">
+              <h2 id="previewTitle">Live Preview – Sidewall</h2>
+              <p class="preview-subtitle">Blueprint view with layout-first emphasis</p>
+            </div>
+
+            <button id="exportBtn" class="ghost-action" type="button">
+              Export SVG + Report
+            </button>
+          </div>
+
+          <div class="preview-toolbar" aria-label="Preview tools">
+            <button type="button" class="tool-btn" id="fitViewBtn">Fit</button>
+            <button type="button" class="tool-btn" id="gridToggleBtn">Grid</button>
+            <button type="button" class="tool-btn" id="labelsToggleBtn">Labels</button>
+          </div>
+
+          <div class="svg-frame">
+            <svg id="wallSvg" aria-label="Wall layout preview"></svg>
+          </div>
+        </section>
+
+        <section class="card results-card">
+          <div class="results-tabs" role="tablist" aria-label="Report sections">
+            <button
+              class="results-tab active"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="summaryPanel"
+              id="summaryTab"
+              data-panel="summaryPanel"
+            >
+              Summary
+            </button>
+            <button
+              class="results-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="warningsPanel"
+              id="warningsTab"
+              data-panel="warningsPanel"
+            >
+              Warnings
+            </button>
+            <button
+              class="results-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="cutsPanel"
+              id="cutsTab"
+              data-panel="cutsPanel"
+            >
+              Cuts
+            </button>
+            <button
+              class="results-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="reportPanel"
+              id="reportTab"
+              data-panel="reportPanel"
+            >
+              Report
+            </button>
+          </div>
+
+          <div class="results-panels">
+            <div class="results-panel active" id="summaryPanel" role="tabpanel" aria-labelledby="summaryTab">
+              <div class="report-card report-card-inline" id="panelSummary"></div>
+            </div>
+
+            <div class="results-panel" id="warningsPanel" role="tabpanel" aria-labelledby="warningsTab" hidden>
+              <div class="report-card report-card-inline" id="warningsReport">
+                <div class="empty-state">Warnings will appear here once validation is wired in.</div>
+              </div>
+            </div>
+
+            <div class="results-panel" id="cutsPanel" role="tabpanel" aria-labelledby="cutsTab" hidden>
+              <div class="report-card report-card-inline" id="cutsReport">
+                <div class="empty-state">Cut details will appear here.</div>
+              </div>
+            </div>
+
+            <div class="results-panel" id="reportPanel" role="tabpanel" aria-labelledby="reportTab" hidden>
+              <div class="report-card report-card-inline" id="openingReport"></div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <!-- Sticky Mobile Action Bar -->
+    <footer class="mobile-action-bar">
+      <button type="button" id="generateBtn" class="footer-btn footer-btn-primary">
+        Generate
+      </button>
+      <button type="button" id="moreBtn" class="footer-btn footer-btn-icon" aria-label="More actions">
+        •••
+      </button>
+      <button type="button" id="footerAddOpeningBtn" class="footer-btn footer-btn-accent">
+        Add Opening
+      </button>
+    </footer>
   </div>
 
-  <div class="report-card" id="panelSummary"></div>
-  <div class="report-card" id="openingReport"></div>
-</div>
-
-<script type="module" src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
