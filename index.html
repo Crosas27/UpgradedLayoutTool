@@ -168,9 +168,22 @@
                   placeholder="480"
                 />
 
-                <label for="eaveHeight">Eave Height (inches)</label>
+                <label for="leftEaveHeight">Left Eave Height (inches)</label>
                 <input
-                  id="eaveHeight"
+                  id="leftEaveHeight"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="120"
+                />
+
+                <label for="rightEaveHeight">Right Eave Height (inches)</label>
+                <input
+                  id="rightEaveHeight"
                   type="number"
                   inputmode="decimal"
                   step="0.125"
@@ -192,6 +205,19 @@
                   spellcheck="false"
                   enterkeyhint="next"
                   placeholder="180"
+                />
+
+                <label for="ridgePosition">Ridge Position from Left (inches)</label>
+                <input
+                  id="ridgePosition"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="240"
                 />
 
                 <label for="gablePanelCoverage">Panel Coverage (inches)</label>
@@ -232,7 +258,18 @@
             <div id="openingsPanel" class="accordion-panel">
               <div id="openingsList" class="openings-list"></div>
 
-              <div class="opening-form">
+              <div class="field-grid opening-entry-grid">
+                <label for="openingLabel">Opening Label</label>
+                <input
+                  id="openingLabel"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="Window 1"
+                />
+
+                <label for="openingStart">Start from Left (inches)</label>
                 <input
                   id="openingStart"
                   type="number"
@@ -242,8 +279,23 @@
                   autocomplete="off"
                   spellcheck="false"
                   enterkeyhint="next"
-                  placeholder="Start (in)"
+                  placeholder="120"
                 />
+
+                <label for="openingBottom">Bottom from Base (inches)</label>
+                <input
+                  id="openingBottom"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="36"
+                />
+
+                <label for="openingWidth">Opening Width (inches)</label>
                 <input
                   id="openingWidth"
                   type="number"
@@ -252,8 +304,21 @@
                   min="0"
                   autocomplete="off"
                   spellcheck="false"
+                  enterkeyhint="next"
+                  placeholder="36"
+                />
+
+                <label for="openingHeight">Opening Height (inches)</label>
+                <input
+                  id="openingHeight"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.125"
+                  min="0"
+                  autocomplete="off"
+                  spellcheck="false"
                   enterkeyhint="done"
-                  placeholder="Width (in)"
+                  placeholder="48"
                 />
               </div>
 
