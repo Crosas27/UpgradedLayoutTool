@@ -73,6 +73,119 @@ function wrapSvgText(text, maxChars = 92) {
   return lines;
 }
 
+function stripTextContent(id) {
+  return byId(id)?.textContent?.trim().replace(/\s+/g, " ") || "";
+}
+
+function extractRowsFromElement(rootSelector) {
+  const root = typeof rootSelector === "string" ? document.querySelector(rootSelector) : rootSelector;
+  if (!root) return [];
+
+  const rows = [];
+
+  root.querySelectorAll(".summary-detail-row, .report-metric-row, .gable-cut-row, .cut-table-row").forEach((row) => {
+    const cells = Array.from(row.children)
+      .map((el) => el.textContent?.trim())
+      .filter(Boolean);
+    if (cells.length) rows.push(cells);
+  });
+
+  return rows;
+}
+
+function extractHeadRowsFromElement(rootSelector) {
+  const root = typeof rootSelector === "string" ? document.querySelector(rootSelector) : rootSelector;
+  if (!root) return [];
+
+  const rows = [];
+
+  root.querySelectorAll(".summary-stat, .summary-cut-item, .opening-report-card").forEach((block) => {
+    const text = block.textContent?.trim().replace(/\s+/g, " ");
+    if (text) rows.push([text]);
+  });
+
+  return rows;
+}
+
+function buildSummaryExportLines() {
+  const summaryRoot = byId("panelSummary");
+  if (!summaryRoot) return ["No summary data available."];
+
+  const lines = [];
+  const title = summaryRoot.querySelector("h3")?.textContent?.trim();
+  if (title) lines.push(title);
+
+  const statBlocks = summaryRoot.querySelectorAll(".summary-stat");
+  statBlocks.forEach((block) => {
+    const label = block.querySelector(".summary-label")?.textContent?.trim();
+    const value = block.querySelector(".summary-value")?.textContent?.trim();
+    if (label && value) lines.push(`${label}: ${value}`);
+  });
+
+  const detailRows = summaryRoot.querySelectorAll(".summary-detail-row");
+  detailRows.forEach((row) => {
+    const spans = Array.from(row.children).map((el) => el.textContent?.trim()).filter(Boolean);
+    if (spans.length >= 2) lines.push(`${spans[0]}: ${spans[1]}`);
+  });
+
+  const cutItems = summaryRoot.querySelectorAll(".summary-cut-item");
+  cutItems.forEach((item) => {
+    const head = item.querySelector(".summary-cut-head")?.textContent?.trim();
+    const vals = Array.from(item.querySelectorAll(".summary-cut-values span"))
+      .map((el) => el.textContent?.trim())
+      .filter(Boolean);
+    if (head) lines.push(head);
+    vals.forEach((v) => lines.push(`• ${v}`));
+  });
+
+  const gableRows = summaryRoot.querySelectorAll(".gable-cut-row");
+  if (gableRows.length) {
+    lines.push("Panel Cut Schedule");
+    gableRows.forEach((row) => {
+      const cols = Array.from(row.children).map((el) => el.textContent?.trim()).filter(Boolean);
+      if (cols.length === 3) {
+        lines.push(`${cols[0]} | Left ${cols[1]} | Right ${cols[2]}`);
+      }
+    });
+  }
+
+  return lines.length ? lines : ["No summary data available."];
+}
+
+function buildReportExportLines() {
+  const reportRoot = byId("openingReport");
+  if (!reportRoot) return ["No report data available."];
+
+  const cards = reportRoot.querySelectorAll(".opening-report-card");
+  if (!cards.length) {
+    const fallback = reportRoot.textContent?.trim().replace(/\s+/g, " ");
+    return [fallback || "No openings entered."];
+  }
+
+  const lines = [];
+  cards.forEach((card, idx) => {
+    const title = card.querySelector("h4")?.textContent?.trim() || `Opening ${idx + 1}`;
+    lines.push(title);
+
+    card.querySelectorAll(".report-metric-row").forEach((row) => {
+      const parts = Array.from(row.children).map((el) => el.textContent?.trim()).filter(Boolean);
+      if (parts.length >= 2) lines.push(`• ${parts[0]}: ${parts[1]}`);
+    });
+
+    const warningBox = card.querySelector(".warning-box");
+    if (warningBox) {
+      const warnings = Array.from(warningBox.querySelectorAll("li"))
+        .map((li) => li.textContent?.trim())
+        .filter(Boolean);
+      warnings.forEach((w) => lines.push(`! ${w}`));
+    }
+
+    if (idx < cards.length - 1) lines.push("");
+  });
+
+  return lines.length ? lines : ["No report data available."];
+}
+
 /* ======================
    STATE COLLECTION
 ====================== */
@@ -721,11 +834,50 @@ function openMoreMenuTarget() {
 /* ======================
    EXPORT
 ====================== */
+function renderExportTextBlock(x, y, width, title, lines, lineHeight = 16) {
+  const safeTitle = escapeXml(title);
+  const tspans = [];
+  let currentY = y + 40;
+
+  const wrappedLines = [];
+  lines.forEach((line) => {
+    const wrapped = wrapSvgText(line, Math.max(42, Math.floor(width / 10)));
+    wrapped.forEach((w) => wrappedLines.push(w));
+  });
+
+  wrappedLines.forEach((line, index) => {
+    tspans.push(
+      `<tspan x="${x + 18}" y="${currentY + index * lineHeight}">${escapeXml(line)}</tspan>`
+    );
+  });
+
+  return `
+    <rect x="${x}" y="${y}" width="${width}" height="${Math.max(140, 58 + wrappedLines.length * lineHeight)}" class="export-box"></rect>
+    <text x="${x + 18}" y="${y + 28}" class="export-section-title">${safeTitle}</text>
+    <text class="export-body">${tspans.join("")}</text>
+  `;
+}
+
 function exportSVG() {
   const svgEl = byId("wallSvg");
   if (!svgEl) return;
 
   const diagramHTML = svgEl.innerHTML.trim();
+
+  const exportWidth = 1290;
+  const exportHeight = 2796;
+
+  const frameX = 48;
+  const frameY = 84;
+  const frameW = exportWidth - 96;
+  const diagramBoxY = 170;
+  const diagramBoxH = 1080;
+  const summaryBoxY = 1290;
+  const reportBoxY = 1880;
+  const contentW = exportWidth - 96;
+
+  const summaryLines = buildSummaryExportLines();
+  const reportLines = buildReportExportLines();
 
   const styleBlock = `
     <defs>
@@ -747,70 +899,77 @@ function exportSVG() {
 
         .export-title {
           font-family:"Fira Code", monospace;
-          font-size:20px;
-          font-weight:600;
+          font-size:34px;
+          font-weight:700;
           fill:#f3f8fd;
         }
         .export-subtitle {
           font-family:"Fira Code", monospace;
-          font-size:12px;
+          font-size:20px;
           fill:#9aa6b2;
         }
         .export-section-title {
           font-family:"Fira Code", monospace;
-          font-size:14px;
-          font-weight:600;
+          font-size:26px;
+          font-weight:700;
           fill:#f3f8fd;
         }
         .export-body {
           font-family:"Fira Code", monospace;
-          font-size:11px;
+          font-size:19px;
           fill:#c8d0d8;
         }
         .export-box {
           fill:#2a2f34;
           stroke:#46505a;
-          stroke-width:1;
-          rx:12;
+          stroke-width:2;
+          rx:20;
+        }
+        .export-frame {
+          fill:#1b1d1f;
+          stroke:#46505a;
+          stroke-width:2;
+          rx:26;
         }
       </style>
     </defs>`;
 
-  const summaryText = byId("panelSummary")?.textContent?.trim().replace(/\s+/g, " ") || "";
-  const reportText = byId("openingReport")?.textContent?.trim().replace(/\s+/g, " ") || "";
-
-  const summaryLines = wrapSvgText(summaryText, 88);
-  const reportLines = wrapSvgText(reportText, 88);
-
-  const summaryTspans = summaryLines
-    .map((line, index) => `<tspan x="40" dy="${index === 0 ? 0 : 16}">${escapeXml(line)}</tspan>`)
-    .join("");
-
-  const reportTspans = reportLines
-    .map((line, index) => `<tspan x="40" dy="${index === 0 ? 0 : 16}">${escapeXml(line)}</tspan>`)
-    .join("");
-
   const modeLabel = currentMode === "sidewall" ? "Sidewall Layout" : "Gable Layout";
 
-  const fullSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="920" viewBox="0 0 1000 920">
+  const summaryBlock = renderExportTextBlock(
+    frameX,
+    summaryBoxY,
+    contentW,
+    "Panel Summary",
+    summaryLines,
+    26
+  );
+
+  const reportBlock = renderExportTextBlock(
+    frameX,
+    reportBoxY,
+    contentW,
+    "Openings Report",
+    reportLines,
+    26
+  );
+
+  const fullSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="${exportWidth}" height="${exportHeight}" viewBox="0 0 ${exportWidth} ${exportHeight}">
     ${styleBlock}
     <rect width="100%" height="100%" fill="#1b1d1f"></rect>
 
-    <text x="40" y="42" class="export-title">CR27 Panel Layout Export</text>
-    <text x="40" y="64" class="export-subtitle">${modeLabel}</text>
+    <rect x="${frameX}" y="${frameY}" width="${frameW}" height="${exportHeight - frameY * 2}" class="export-frame"></rect>
 
-    <rect x="28" y="88" width="944" height="430" class="export-box"></rect>
-    <g transform="translate(40,110)">
+    <text x="${frameX + 26}" y="${frameY + 54}" class="export-title">CR27 Panel Layout Export</text>
+    <text x="${frameX + 26}" y="${frameY + 88}" class="export-subtitle">${modeLabel}</text>
+
+    <rect x="${frameX}" y="${diagramBoxY}" width="${contentW}" height="${diagramBoxH}" class="export-box"></rect>
+    <g transform="translate(${frameX + 24}, ${diagramBoxY + 24}) scale(1.22)">
       ${diagramHTML}
     </g>
 
-    <rect x="28" y="544" width="944" height="140" class="export-box"></rect>
-    <text x="40" y="570" class="export-section-title">Panel Summary</text>
-    <text x="40" y="596" class="export-body">${summaryTspans}</text>
-
-    <rect x="28" y="706" width="944" height="180" class="export-box"></rect>
-    <text x="40" y="732" class="export-section-title">Openings Report</text>
-    <text x="40" y="758" class="export-body">${reportTspans}</text>
+    ${summaryBlock}
+    ${reportBlock}
   </svg>`;
 
   const blob = new Blob([fullSVG], { type: "image/svg+xml" });
