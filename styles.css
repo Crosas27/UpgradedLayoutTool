@@ -670,6 +670,7 @@ input:focus {
 .summary-cut-stack {
   display: grid;
   gap: 10px;
+  margin-bottom: 14px;
 }
 
 .summary-cut-item {
@@ -690,6 +691,47 @@ input:focus {
   gap: 12px;
   color: var(--text-soft);
   font-family: "Fira Code", monospace;
+}
+
+/* compact gable cut schedule */
+.gable-cut-schedule {
+  border: 1px solid rgba(90, 102, 115, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #252b31;
+}
+
+.gable-cut-schedule-head,
+.gable-cut-row {
+  display: grid;
+  grid-template-columns: 72px 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  font-family: "Fira Code", monospace;
+}
+
+.gable-cut-schedule-head {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(90, 102, 115, 0.28);
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gable-cut-row {
+  color: var(--text-soft);
+  font-size: 0.84rem;
+}
+
+.gable-cut-row + .gable-cut-row {
+  border-top: 1px solid rgba(90, 102, 115, 0.18);
+}
+
+.gable-cut-row strong {
+  color: var(--text);
 }
 
 /* =========================
@@ -982,6 +1024,14 @@ input:focus {
   .summary-cut-values {
     flex-direction: column;
     gap: 4px;
+  }
+
+  .gable-cut-schedule-head,
+  .gable-cut-row {
+    grid-template-columns: 58px 1fr 1fr;
+    gap: 8px;
+    padding: 9px 10px;
+    font-size: 0.78rem;
   }
 
   .opening-report-head {
