@@ -29,7 +29,8 @@ function byId(id) {
 function formatInches(value) {
   const num = Number(value);
   if (!Number.isFinite(num)) return '0"';
-  return `${num}"`;
+  const rounded = Math.round(num * 1000) / 1000;
+  return `${rounded}"`;
 }
 
 function formatFeetInches(value) {
@@ -168,50 +169,6 @@ function inferWarnings(model) {
   return warnings;
 }
 
-function inferCuts(model) {
-  if (!model) return [];
-
-  const cuts = [];
-
-  if (model.mode === "sidewall") {
-    if (model.summary?.startPanel !== null) {
-      cuts.push(`Start panel cut: ${model.summary.startPanel}"`);
-    }
-
-    if (model.summary?.endPanel !== null) {
-      cuts.push(`End panel cut: ${model.summary.endPanel}"`);
-    }
-
-    if (Array.isArray(model.openingAnalysis) && model.openingAnalysis.length) {
-      model.openingAnalysis.forEach((opening) => {
-        if (Array.isArray(opening.intersectingPanels) && opening.intersectingPanels.length) {
-          const name = opening.label || `Opening ${opening.id}`;
-          cuts.push(`${name} crosses ${opening.intersectingPanels.length} panel(s).`);
-        }
-      });
-    }
-
-    if (cuts.length === 0) {
-      cuts.push("No edge or opening cuts detected.");
-    }
-  }
-
-  if (model.mode === "gable") {
-    if (Array.isArray(model.gableCuts) && model.gableCuts.length) {
-      const first = model.gableCuts[0];
-      const last = model.gableCuts[model.gableCuts.length - 1];
-
-      cuts.push(`Gable panels generated: ${model.gableCuts.length}`);
-      cuts.push(`First panel heights: ${first.leftHeight}" to ${first.rightHeight}".`);
-      cuts.push(`Last panel heights: ${last.leftHeight}" to ${last.rightHeight}".`);
-    } else {
-      cuts.push("No gable cut data available.");
-    }
-  }
-
-  return cuts;
-}
-
 function renderStatusBar(model, warnings = []) {
   const wallLength =
     currentMode === "sidewall"
@@ -285,16 +242,201 @@ function renderWarningsPanel(warnings) {
   `;
 }
 
-function renderCutsPanel(cuts) {
+/* ======================
+   CUTS TAB RENDERER
+====================== */
+function buildSidewallCutData(model) {
+  const edgeCuts = [];
+  const openingCuts = [];
+  const panelRows = [];
+
+  if (model.summary?.startPanel !== null) {
+    edgeCuts.push({
+      label: "Start Panel",
+      panel: "P1",
+      width: model.summary.startPanel,
+      location: "Left Wall End"
+    });
+
+    panelRows.push({
+      panel: "P1",
+      type: "Edge",
+      instruction: `Trim panel to ${formatInches(model.summary.startPanel)} at left wall end`
+    });
+  }
+
+  if (model.summary?.endPanel !== null) {
+    const endPanelNumber = Array.isArray(model.panels) ? model.panels.length : "?";
+    edgeCuts.push({
+      label: "End Panel",
+      panel: `P${endPanelNumber}`,
+      width: model.summary.endPanel,
+      location: "Right Wall End"
+    });
+
+    panelRows.push({
+      panel: `P${endPanelNumber}`,
+      type: "Edge",
+      instruction: `Trim panel to ${formatInches(model.summary.endPanel)} at right wall end`
+    });
+  }
+
+  if (Array.isArray(model.openingAnalysis)) {
+    model.openingAnalysis.forEach((opening) => {
+      if (!Array.isArray(opening.intersectingPanels) || !opening.intersectingPanels.length) return;
+
+      const panelNames = opening.intersectingPanels.map((cut) => `P${cut.panel}`);
+
+      openingCuts.push({
+        label: opening.label || `Opening ${opening.id}`,
+        panels: panelNames,
+        start: opening.start,
+        end: opening.end,
+        bottom: opening.bottom,
+        top: opening.top,
+        intersectingPanels: opening.intersectingPanels
+      });
+
+      opening.intersectingPanels.forEach((cut) => {
+        panelRows.push({
+          panel: `P${cut.panel}`,
+          type: "Opening",
+          instruction:
+            `${opening.label || `Opening ${opening.id}`} cut ` +
+            `${formatInches(cut.cutStart)} to ${formatInches(cut.cutEnd)}, ` +
+            `height ${formatInches(cut.openingBottom)} to ${formatInches(cut.openingTop)}`
+        });
+      });
+    });
+  }
+
+  return { edgeCuts, openingCuts, panelRows };
+}
+
+function renderCutsPanel(model) {
   const panel = byId("cutsReport");
   if (!panel) return;
 
+  if (!model) {
+    panel.innerHTML = `<div class="empty-state">No cut data available.</div>`;
+    return;
+  }
+
+  if (model.mode === "gable") {
+    panel.innerHTML = `
+      <div class="cuts-block">
+        <h3>Cut Instructions</h3>
+        <div class="empty-state">Use the Summary tab for the full gable cut schedule.</div>
+      </div>
+    `;
+    return;
+  }
+
+  const { edgeCuts, openingCuts, panelRows } = buildSidewallCutData(model);
+
   panel.innerHTML = `
-    <div class="panel-cut-list">
-      <strong>Cut Review</strong>
-      <ul>
-        ${cuts.map((item) => `<li>${item}</li>`).join("")}
-      </ul>
+    <div class="cuts-block">
+      <h3>Cut Instructions</h3>
+
+      <div class="cuts-section">
+        <div class="cuts-section-title">Edge Cuts</div>
+
+        ${
+          edgeCuts.length
+            ? edgeCuts
+                .map(
+                  (cut) => `
+                    <div class="cut-row">
+                      <div class="cut-row-head">
+                        <strong>${cut.label}</strong>
+                        <span class="cut-badge cut-badge-edge">Edge Cut</span>
+                      </div>
+                      <div class="cut-row-body">
+                        <div class="cut-metric">
+                          <span>Panel</span>
+                          <strong>${cut.panel}</strong>
+                        </div>
+                        <div class="cut-metric">
+                          <span>Cut Width</span>
+                          <strong>${formatInches(cut.width)}</strong>
+                        </div>
+                        <div class="cut-metric">
+                          <span>Location</span>
+                          <strong>${cut.location}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  `
+                )
+                .join("")
+            : `<div class="empty-state">No edge cuts detected.</div>`
+        }
+      </div>
+
+      <div class="cuts-section">
+        <div class="cuts-section-title">Opening Cuts</div>
+
+        ${
+          openingCuts.length
+            ? openingCuts
+                .map(
+                  (cut) => `
+                    <div class="cut-row">
+                      <div class="cut-row-head">
+                        <strong>${cut.label}</strong>
+                        <span class="cut-badge cut-badge-opening">Opening Cut</span>
+                      </div>
+                      <div class="cut-row-body">
+                        <div class="cut-metric">
+                          <span>Panels Affected</span>
+                          <strong>${cut.panels.join(", ")}</strong>
+                        </div>
+                        <div class="cut-metric">
+                          <span>Horizontal Range</span>
+                          <strong>${formatInches(cut.start)} → ${formatInches(cut.end)}</strong>
+                        </div>
+                        <div class="cut-metric">
+                          <span>Vertical Range</span>
+                          <strong>${formatInches(cut.bottom)} → ${formatInches(cut.top)}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  `
+                )
+                .join("")
+            : `<div class="empty-state">No opening cuts detected.</div>`
+        }
+      </div>
+
+      <div class="cuts-section">
+        <div class="cuts-section-title">Panel-by-Panel</div>
+
+        ${
+          panelRows.length
+            ? `
+              <div class="cut-table">
+                <div class="cut-table-head">
+                  <span>Panel</span>
+                  <span>Type</span>
+                  <span>Instruction</span>
+                </div>
+
+                ${panelRows
+                  .map(
+                    (row) => `
+                      <div class="cut-table-row">
+                        <span>${row.panel}</span>
+                        <span>${row.type}</span>
+                        <span>${row.instruction}</span>
+                      </div>
+                    `
+                  )
+                  .join("")}
+              </div>
+            `
+            : `<div class="empty-state">No panel cut instructions generated.</div>`
+        }
+      </div>
     </div>
   `;
 }
@@ -326,6 +468,25 @@ function toggleLabels() {
 }
 
 /* ======================
+   TAB VISIBILITY BY MODE
+====================== */
+function syncTabVisibility() {
+  const cutsTab = byId("cutsTab");
+  const cutsPanel = byId("cutsPanel");
+
+  if (!cutsTab || !cutsPanel) return;
+
+  const showCuts = currentMode === "sidewall";
+
+  cutsTab.classList.toggle("hidden", !showCuts);
+  cutsPanel.classList.toggle("hidden", !showCuts);
+
+  if (!showCuts && cutsTab.classList.contains("active")) {
+    activateResultsTab("summaryPanel");
+  }
+}
+
+/* ======================
    LAYOUT UPDATE
 ====================== */
 function updateLayout() {
@@ -345,12 +506,12 @@ function updateLayout() {
 
   const merged = { ...model, ...config };
   const warnings = inferWarnings(merged);
-  const cuts = inferCuts(merged);
 
   renderWarningsPanel(warnings);
-  renderCutsPanel(cuts);
+  renderCutsPanel(merged);
   renderStatusBar(merged, warnings);
   renderSectionSummaries(merged);
+  syncTabVisibility();
   applyPreviewVisibility();
 
   return model;
@@ -388,6 +549,7 @@ function switchMode(mode) {
       mode === "sidewall" ? "Live Preview – Sidewall" : "Live Preview – Gable End";
   }
 
+  syncTabVisibility();
   renderSectionSummaries(collectFormState());
   updateLayout();
 }
@@ -416,7 +578,7 @@ function renderOpeningsList() {
     const top = (Number(op.bottom) || 0) + (Number(op.height) || 0);
 
     div.innerHTML = `
-      <span>${label}: ${op.start}" → ${end}" • ${op.bottom}" → ${top}"</span>
+      <span>${label}: ${formatInches(op.start)} → ${formatInches(end)} • ${formatInches(op.bottom)} → ${formatInches(top)}</span>
       <button class="delete-btn" type="button" aria-label="Delete ${label}">X</button>
     `;
 
@@ -524,6 +686,7 @@ function activateResultsTab(panelId) {
 function bindResultsTabs() {
   document.querySelectorAll(".results-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
+      if (tab.classList.contains("hidden")) return;
       const panelId = tab.dataset.panel;
       if (!panelId) return;
       activateResultsTab(panelId);
@@ -683,9 +846,9 @@ function bindFormBehavior() {
   form.addEventListener("keydown", function (e) {
     if (e.key !== "Enter") return;
 
-    const inputs = Array.from(
-      this.querySelectorAll('input:not(.hidden)')
-    ).filter((el) => !el.closest(".hidden"));
+    const inputs = Array.from(this.querySelectorAll("input")).filter(
+      (el) => !el.closest(".hidden")
+    );
 
     const currentIndex = inputs.indexOf(e.target);
 
@@ -730,5 +893,6 @@ document.addEventListener("DOMContentLoaded", () => {
   activateResultsTab("summaryPanel");
   renderOpeningsList();
   renderSectionSummaries(collectFormState());
+  syncTabVisibility();
   switchMode("sidewall");
 });
