@@ -231,6 +231,32 @@ function renderGableSummary(el, model) {
           `
           : ""
       }
+
+      ${
+        cuts.length
+          ? `
+            <div class="gable-cut-schedule">
+              <div class="gable-cut-schedule-head">
+                <span>Panel</span>
+                <span>Left</span>
+                <span>Right</span>
+              </div>
+
+              ${cuts
+                .map(
+                  (cut) => `
+                    <div class="gable-cut-row">
+                      <strong>P${cut.panel}</strong>
+                      <span>${formatToField(cut.leftHeight)}</span>
+                      <span>${formatToField(cut.rightHeight)}</span>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+          `
+          : ""
+      }
     </div>
   `;
 }
