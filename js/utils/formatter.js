@@ -36,7 +36,12 @@ function formatTotal(inches) {
   return `${whole}”`
 }
 
+const _formatCache = new Map();
+
 export function formatToField(inches) {
   if (inches === null || inches === undefined) return ""
-  return `${formatFeetInches(inches)} (${formatTotal(inches)})`
+  if (_formatCache.has(inches)) return _formatCache.get(inches)
+  const result = `${formatFeetInches(inches)} (${formatTotal(inches)})`
+  _formatCache.set(inches, result)
+  return result
 }

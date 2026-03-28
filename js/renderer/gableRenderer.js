@@ -24,7 +24,8 @@ export function renderGable(model) {
   const height = svg.clientHeight || 320;
 
   setupSvg(svg, width, height);
-  drawGrid(svg, width, height);
+  const frag = document.createDocumentFragment();
+  drawGrid(frag, width, height);
 
   const {
     wallLength,
@@ -69,32 +70,24 @@ export function renderGable(model) {
   const rightEaveY = baseY - rightEaveHeight * scale;
 
   // Base line
-  drawLine(svg, wallLeft, baseY, wallRight, baseY, "wall-line");
+  drawLine(frag, wallLeft, baseY, wallRight, baseY, "wall-line");
 
   // Side wall lines
-  drawLine(svg, wallLeft, baseY, wallLeft, leftEaveY, "wall-line");
-  drawLine(svg, wallRight, baseY, wallRight, rightEaveY, "wall-line");
+  drawLine(frag, wallLeft, baseY, wallLeft, leftEaveY, "wall-line");
+  drawLine(frag, wallRight, baseY, wallRight, rightEaveY, "wall-line");
 
   // Roof lines
-  drawLine(svg, wallLeft, leftEaveY, ridgeX, ridgeY, "roof-line");
-  drawLine(svg, wallRight, rightEaveY, ridgeX, ridgeY, "roof-line");
+  drawLine(frag, wallLeft, leftEaveY, ridgeX, ridgeY, "roof-line");
+  drawLine(frag, wallRight, rightEaveY, ridgeX, ridgeY, "roof-line");
 
   // Panel seams and labels
   gableCuts.forEach((panel, i) => {
     if (panel.start === undefined || panel.end === undefined) return;
 
     const seamX = wallLeft + panel.start * scale;
-    const seamHeight = heightAtAsymmetricalGable(
-      panel.start,
-      wallLength,
-      leftEaveHeight,
-      rightEaveHeight,
-      peakHeight,
-      ridgePosition
-    );
-    const seamTopY = baseY - seamHeight * scale;
+    const seamTopY = baseY - panel.leftHeight * scale;
 
-    drawLine(svg, seamX, baseY, seamX, seamTopY, "panel-line");
+    drawLine(frag, seamX, baseY, seamX, seamTopY, "panel-line");
 
     const panelWidthPx = (panel.end - panel.start) * scale;
     if (!shouldShowPanelLabel(panelWidthPx)) return;
@@ -106,7 +99,7 @@ export function renderGable(model) {
     const labelY = maxHeightY - labelOffset;
 
     drawText(
-      svg,
+      frag,
       midX,
       labelY,
       `${formatToField(panel.leftHeight)} → ${formatToField(panel.rightHeight)}`,
@@ -114,21 +107,14 @@ export function renderGable(model) {
     );
   });
 
-  // Final right seam
-  const rightHeightAtEnd = heightAtAsymmetricalGable(
-    wallLength,
-    wallLength,
-    leftEaveHeight,
-    rightEaveHeight,
-    peakHeight,
-    ridgePosition
-  );
-  const rightTopY = baseY - rightHeightAtEnd * scale;
-  drawLine(svg, wallRight, baseY, wallRight, rightTopY, "panel-line");
+  // Final right seam — reuse the last panel's pre-computed rightHeight
+  const lastCut = gableCuts[gableCuts.length - 1];
+  const rightTopY = baseY - lastCut.rightHeight * scale;
+  drawLine(frag, wallRight, baseY, wallRight, rightTopY, "panel-line");
 
   // Peak label
   drawText(
-    svg,
+    frag,
     ridgeX,
     ridgeY - 12,
     `Peak ${formatToField(peakHeight)}`,
@@ -137,7 +123,7 @@ export function renderGable(model) {
 
   // Left eave label
   drawText(
-    svg,
+    frag,
     wallLeft,
     leftEaveY - 10,
     `L Eave ${formatToField(leftEaveHeight)}`,
@@ -146,7 +132,7 @@ export function renderGable(model) {
 
   // Right eave label
   drawText(
-    svg,
+    frag,
     wallRight,
     rightEaveY - 10,
     `R Eave ${formatToField(rightEaveHeight)}`,
@@ -154,35 +140,15 @@ export function renderGable(model) {
   );
 
   // Ridge position label
-  drawLine(svg, wallLeft, baseY + 24, wallRight, baseY + 24, "dimension-line");
+  drawLine(frag, wallLeft, baseY + 24, wallRight, baseY + 24, "dimension-line");
   drawText(
-    svg,
+    frag,
     wallLeft + roofWidth / 2,
     baseY + 16,
     `Span ${formatToField(wallLength)} • Ridge ${formatToField(ridgePosition)} from left`,
     "dimension-text total-text"
   );
+
+  svg.appendChild(frag);
 }
 
-function heightAtAsymmetricalGable(
-  x,
-  wallLength,
-  leftEaveHeight,
-  rightEaveHeight,
-  peakHeight,
-  ridgePosition
-) {
-  const safeRidge = clamp(ridgePosition, 0.001, wallLength - 0.001);
-
-  if (x <= safeRidge) {
-    const runLeft = safeRidge;
-    const riseLeft = peakHeight - leftEaveHeight;
-    return leftEaveHeight + riseLeft * (x / runLeft);
-  }
-
-  const runRight = wallLength - safeRidge;
-  const distanceFromRidge = x - safeRidge;
-  const dropRight = peakHeight - rightEaveHeight;
-
-  return peakHeight - dropRight * (distanceFromRidge / runRight);
-}

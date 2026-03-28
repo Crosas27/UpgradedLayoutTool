@@ -56,12 +56,12 @@ export function getDrawArea(width, height) {
     };
 }
 
-export function drawGrid(svg, width, height, step = 40) {
+export function drawGrid(container, width, height, step = 40) {
     for (let x = 0; x <= width; x += step) {
-        drawLine(svg, x, 0, x, height, "grid-line");
+        drawLine(container, x, 0, x, height, "grid-line");
     }
 
     for (let y = 0; y <= height; y += step) {
-        drawLine(svg, 0, y, width, y, "grid-line");
+        drawLine(container, 0, y, width, y, "grid-line");
     }
 }
