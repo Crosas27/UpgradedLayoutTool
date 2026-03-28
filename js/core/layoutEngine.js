@@ -128,6 +128,16 @@ function generatePanelSummary(wallLength, coverage, panels) {
   };
 }
 
+// Returns the index of the first element in sorted arr that is >= val.
+function lowerBound(arr, val) {
+  let lo = 0, hi = arr.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    arr[mid] < val ? (lo = mid + 1) : (hi = mid);
+  }
+  return lo;
+}
+
 function analyzeOpenings(openings, seams, ribs, wallHeight) {
   const edgeTolerance = 0.5;
   const results = [];
@@ -147,7 +157,9 @@ function analyzeOpenings(openings, seams, ribs, wallHeight) {
     const rightEdgeHits = ribs.filter((r) => Math.abs(r.position - end) <= edgeTolerance);
 
     const intersectingPanels = [];
-    for (let i = 0; i < seams.length - 1; i++) {
+    // Binary search to the first seam that could start a panel overlapping the opening.
+    const startIdx = Math.max(0, lowerBound(seams, start) - 1);
+    for (let i = startIdx; i < seams.length - 1 && seams[i] < end; i++) {
       const panelStart = seams[i];
       const panelEnd = seams[i + 1];
       if (end <= panelStart || start >= panelEnd) continue;
@@ -209,21 +221,18 @@ function analyzeOpenings(openings, seams, ribs, wallHeight) {
   return results;
 }
 
-function findNearestValue(target, values) {
-  if (!values.length) return 0;
+// Binary search for nearest value in a sorted array. O(log n).
+function findNearestValue(target, sortedValues) {
+  if (!sortedValues.length) return 0;
 
-  let nearest = values[0];
-  let smallestDiff = Math.abs(target - nearest);
+  const idx = lowerBound(sortedValues, target);
 
-  values.forEach((value) => {
-    const diff = Math.abs(target - value);
-    if (diff < smallestDiff) {
-      smallestDiff = diff;
-      nearest = value;
-    }
-  });
+  if (idx === 0) return sortedValues[0];
+  if (idx === sortedValues.length) return sortedValues[sortedValues.length - 1];
 
-  return nearest;
+  const before = sortedValues[idx - 1];
+  const after = sortedValues[idx];
+  return (target - before) <= (after - target) ? before : after;
 }
 
 /* ---------------- GABLE PANEL CALCULATIONS ---------------- */

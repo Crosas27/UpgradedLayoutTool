@@ -283,17 +283,9 @@ function inferWarnings(model) {
 }
 
 function renderStatusBar(model, warnings = []) {
-  const wallLength =
-    currentMode === "sidewall"
-      ? Number(model?.wallLength) || Number(byId("wallLength")?.value) || 480
-      : Number(model?.wallLength) || Number(byId("gableWallLength")?.value) || 480;
-
-  const coverage =
-    currentMode === "sidewall"
-      ? Number(model?.panelCoverage) || Number(byId("panelCoverage")?.value) || 36
-      : Number(model?.panelCoverage) || Number(byId("gablePanelCoverage")?.value) || 36;
-
-  const rib = Number(model?.ribSpacing) || Number(byId("ribSpacing")?.value) || 12;
+  const wallLength = Number(model?.wallLength) || 480;
+  const coverage = Number(model?.panelCoverage) || 36;
+  const rib = Number(model?.ribSpacing) || 12;
   const warningCount = warnings.length;
 
   setText("statusMode", currentMode === "sidewall" ? "Sidewall" : "Gable End");
@@ -313,20 +305,15 @@ function renderStatusBar(model, warnings = []) {
 }
 
 function renderSectionSummaries(model) {
+  const wallLength = Number(model?.wallLength) || 480;
+  const coverage = Number(model?.panelCoverage) || 36;
+  const rib = Number(model?.ribSpacing) || 12;
+
   if (currentMode === "sidewall") {
-    const wallLength = Number(model?.wallLength) || Number(byId("wallLength")?.value) || 480;
     setText("sidewallSummary", `Sidewall • ${formatFeetInches(wallLength)}`);
   } else {
-    const wallLength = Number(model?.wallLength) || Number(byId("gableWallLength")?.value) || 480;
     setText("gableSummary", `Gable • ${formatFeetInches(wallLength)}`);
   }
-
-  const coverage =
-    currentMode === "sidewall"
-      ? Number(model?.panelCoverage) || Number(byId("panelCoverage")?.value) || 36
-      : Number(model?.panelCoverage) || Number(byId("gablePanelCoverage")?.value) || 36;
-
-  const rib = Number(model?.ribSpacing) || Number(byId("ribSpacing")?.value) || 12;
   const rulesSummary =
     currentMode === "sidewall"
       ? `PBR • ${formatInches(coverage)} / ${formatInches(rib)}`

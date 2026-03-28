@@ -37,11 +37,11 @@ export function renderOpeningReport(model) {
     return;
   }
 
-  let html = `
-    <div class="report-block">
-      <h3>Openings Report</h3>
-      <div class="report-stack">
-  `;
+  const parts = [
+    `<div class="report-block">`,
+    `<h3>Openings Report</h3>`,
+    `<div class="report-stack">`
+  ];
 
   analysis.forEach((item) => {
     const label = item.label?.trim() || `Opening ${item.id}`;
@@ -54,7 +54,7 @@ export function renderOpeningReport(model) {
       ? item.rightEdgeHits.map(inchesText).join(", ")
       : "None";
 
-    html += `
+    parts.push(`
       <section class="opening-report-card">
         <div class="opening-report-head">
           <h4>${label}</h4>
@@ -85,10 +85,10 @@ export function renderOpeningReport(model) {
           ${metricRow("Left Edge Hits", leftHits)}
           ${metricRow("Right Edge Hits", rightHits)}
         </div>
-    `;
+    `);
 
     if (item.intersectingPanels?.length) {
-      html += `
+      parts.push(`
         <div class="panel-cut-list report-subsection">
           <strong>Panels affected</strong>
           <ul>
@@ -111,35 +111,30 @@ export function renderOpeningReport(model) {
               .join("")}
           </ul>
         </div>
-      `;
+      `);
     }
 
     if (item.warnings?.length) {
-      html += `
+      parts.push(`
         <div class="warning-box">
           <strong>Warnings</strong>
           <ul>
             ${item.warnings.map((w) => `<li>${w}</li>`).join("")}
           </ul>
         </div>
-      `;
+      `);
     } else {
-      html += `
+      parts.push(`
         <div class="report-clear good-status">
           <strong>Status:</strong> Clear
         </div>
-      `;
+      `);
     }
 
-    html += `
-      </section>
-    `;
+    parts.push(`</section>`);
   });
 
-  html += `
-      </div>
-    </div>
-  `;
+  parts.push(`</div></div>`);
 
-  container.innerHTML = html;
+  container.innerHTML = parts.join("");
 }

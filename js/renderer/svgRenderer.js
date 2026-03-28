@@ -28,6 +28,8 @@ export function renderSvg(model) {
 
   setupSvg(svg, width, height);
 
+  const frag = document.createDocumentFragment();
+
   const paddingX = clamp(width * 0.045, 18, 32);
   const topZone = clamp(height * 0.16, 40, 72);
   const bottomZone = clamp(height * 0.2, 44, 80);
@@ -48,7 +50,7 @@ export function renderSvg(model) {
   const totalLineY = wallY + wallH + 28;
 
   // Wall outline
-  drawRect(svg, wallX, wallY, wallW, wallH, "wall-outline");
+  drawRect(frag, wallX, wallY, wallW, wallH, "wall-outline");
 
   // Panels
   model.panels.forEach((panel, index) => {
@@ -56,11 +58,11 @@ export function renderSvg(model) {
     const w = (panel.end - panel.start) * scale;
     const isCut = (panel.end - panel.start) !== model.panelCoverage;
 
-    drawRect(svg, x, wallY, w, wallH, isCut ? "panel-cut" : "panel-full");
+    drawRect(frag, x, wallY, w, wallH, isCut ? "panel-cut" : "panel-full");
 
     if (shouldShowPanelLabel(w)) {
       drawText(
-        svg,
+        frag,
         x + w / 2,
         wallY + wallH / 2,
         String(index + 1),
@@ -75,21 +77,21 @@ export function renderSvg(model) {
 
   seamPositions.forEach((pos) => {
     const x = wallX + pos * scale;
-    drawLine(svg, x, wallY, x, wallY + wallH, "panel-seam");
+    drawLine(frag, x, wallY, x, wallY + wallH, "panel-seam");
   });
 
   // Ribs
   model.ribs.forEach((rib) => {
     const x = wallX + rib.position * scale;
-    drawLine(svg, x, wallY, x, wallY + wallH, "rib-line");
+    drawLine(frag, x, wallY, x, wallY + wallH, "rib-line");
   });
 
   // Top dimension line
-  drawLine(svg, wallX, markLineY, wallX + wallW, markLineY, "dimension-line");
+  drawLine(frag, wallX, markLineY, wallX + wallW, markLineY, "dimension-line");
 
   seamPositions.forEach((pos) => {
     const x = wallX + pos * scale;
-    drawLine(svg, x, markLineY - 6, x, markLineY + 6, "tick");
+    drawLine(frag, x, markLineY - 6, x, markLineY + 6, "tick");
   });
 
   // Dimension labels with adaptive density
@@ -113,14 +115,14 @@ export function renderSvg(model) {
       return;
     }
 
-    drawText(svg, x, markLineY - 10, `${Math.round(pos)}"`, "dimension-text");
+    drawText(frag, x, markLineY - 10, `${Math.round(pos)}"`, "dimension-text");
     lastX = x;
   });
 
   // Bottom total length
-  drawLine(svg, wallX, totalLineY, wallX + wallW, totalLineY, "dimension-line");
+  drawLine(frag, wallX, totalLineY, wallX + wallW, totalLineY, "dimension-line");
   drawText(
-    svg,
+    frag,
     wallX + wallW / 2,
     totalLineY - 8,
     `${Math.round(model.wallLength)}"`,
@@ -128,11 +130,11 @@ export function renderSvg(model) {
   );
 
   // Left wall height callout
-  drawLine(svg, wallX - 18, wallY, wallX - 18, wallY + wallH, "dimension-line");
-  drawLine(svg, wallX - 24, wallY, wallX - 12, wallY, "tick");
-  drawLine(svg, wallX - 24, wallY + wallH, wallX - 12, wallY + wallH, "tick");
+  drawLine(frag, wallX - 18, wallY, wallX - 18, wallY + wallH, "dimension-line");
+  drawLine(frag, wallX - 24, wallY, wallX - 12, wallY, "tick");
+  drawLine(frag, wallX - 24, wallY + wallH, wallX - 12, wallY + wallH, "tick");
   drawText(
-    svg,
+    frag,
     wallX - 28,
     wallY + wallH / 2,
     `${Math.round(model.wallHeight)}"`,
@@ -149,13 +151,15 @@ export function renderSvg(model) {
     const w = (Number(opening.width) || 0) * scale;
     const h = (Number(opening.height) || 0) * scale;
 
-    drawRect(svg, x, y, w, h, "opening-box");
+    drawRect(frag, x, y, w, h, "opening-box");
 
     if (shouldShowOpeningLabel(w, h)) {
       const label = opening.label?.trim() || `O${index + 1}`;
-      drawText(svg, x + w / 2, y + h / 2, label, "dimension-text");
+      drawText(frag, x + w / 2, y + h / 2, label, "dimension-text");
     } else {
-      drawText(svg, x + w / 2, wallY + wallH + 16, `O${index + 1}`, "dimension-text");
+      drawText(frag, x + w / 2, wallY + wallH + 16, `O${index + 1}`, "dimension-text");
     }
   });
+
+  svg.appendChild(frag);
 }
